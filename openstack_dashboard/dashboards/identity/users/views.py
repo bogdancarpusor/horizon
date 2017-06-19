@@ -18,7 +18,6 @@
 
 import logging
 import operator
-
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.urlresolvers import reverse_lazy
@@ -32,6 +31,8 @@ from horizon import messages
 from horizon import tables
 from horizon.utils import memoized
 from horizon import views
+from horizon import version
+from horizon import tabs
 
 from openstack_dashboard import api
 from openstack_dashboard import policy
@@ -42,62 +43,23 @@ from openstack_dashboard.dashboards.identity.users \
     import tables as project_tables
 from openstack_dashboard.utils import identity
 
+from openstack_dashboard.dashboards.identity.users import tabs as user_tabs
 LOG = logging.getLogger(__name__)
 
-
-class IndexView(tables.DataTableView):
-    table_class = project_tables.UsersTable
+class IndexView(tabs.TabbedTableView):
+    tab_group_class = user_tabs.UsersTabs
     template_name = 'identity/users/index.html'
     page_title = _("Users")
 
-    def needs_filter_first(self, table):
-        return self._needs_filter_first
+    def get_context_data(self, **kwargs):
+        context = super(IndexView, self).get_context_data(**kwargs)
+        try:
+            context['version'] = version.version_info.version_string()
+        except Exception:
+            exceptions.handle(self.request,
+                              _('Unable to retrieve version information'))
 
-    def get_data(self):
-        users = []
-        filters = self.get_filters()
-
-        self._needs_filter_first = False
-
-        if policy.check((("identity", "identity:list_users"),),
-                        self.request):
-
-            # If filter_first is set and if there are not other filters
-            # selected, then search criteria must be provided
-            # and return an empty list
-            filter_first = getattr(settings, 'FILTER_DATA_FIRST', {})
-            if filter_first.get('identity.users', False) and len(filters) == 0:
-                self._needs_filter_first = True
-                return users
-
-            domain_id = identity.get_domain_id_for_operation(self.request)
-            try:
-                users = api.keystone.user_list(self.request,
-                                               domain=domain_id,
-                                               filters=filters)
-            except Exception:
-                exceptions.handle(self.request,
-                                  _('Unable to retrieve user list.'))
-        elif policy.check((("identity", "identity:get_user"),),
-                          self.request):
-            try:
-                user = api.keystone.user_get(self.request,
-                                             self.request.user.id,
-                                             admin=False)
-                users.append(user)
-            except Exception:
-                exceptions.handle(self.request,
-                                  _('Unable to retrieve user information.'))
-        else:
-            msg = _("Insufficient privilege level to view user information.")
-            messages.info(self.request, msg)
-
-        if api.keystone.VERSIONS.active >= 3:
-            domain_lookup = api.keystone.domain_lookup(self.request)
-            for u in users:
-                u.domain_name = domain_lookup.get(u.domain_id)
-        return users
-
+        return context
 
 class UpdateView(forms.ModalFormView):
     template_name = 'identity/users/update.html'

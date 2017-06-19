@@ -19,6 +19,7 @@ from horizon import tables
 from openstack_dashboard import api
 from openstack_dashboard import policy
 
+import pdb
 ENABLE = 0
 DISABLE = 1
 KEYSTONE_V2_ENABLED = api.keystone.VERSIONS.active < 3
@@ -174,7 +175,7 @@ class UpdateRow(tables.Row):
         return user_info
 
 
-class UsersTable(tables.DataTable):
+class KeystoneUsersTable(tables.DataTable):
     STATUS_CHOICES = (
         ("true", True),
         ("false", False)
@@ -215,9 +216,47 @@ class UsersTable(tables.DataTable):
                                     attrs={'data-type': 'uuid'})
 
     class Meta(object):
-        name = "users"
-        verbose_name = _("Users")
+        name = "keystone_users"
+        verbose_name = _("Keystone Users")
         row_actions = (EditUserLink, ChangePasswordLink, ToggleEnabled,
                        DeleteUsersAction)
         table_actions = (UserFilterAction, CreateUserLink, DeleteUsersAction)
         row_class = UpdateRow
+
+
+class GarrUsersTable(tables.DataTable):
+    STATUS_CHOICES = (
+        ("true", True),
+        ("false", False)
+    )
+    name = tables.WrappingColumn('name',
+                                 link="horizon:identity:users:detail",
+                                 verbose_name=_('User Name'),
+                                 form_field=forms.CharField(required=False))
+    email = tables.Column(lambda obj: getattr(obj, 'email', None),
+                          verbose_name=_('Email'),
+                          form_field=forms.EmailField(required=False),
+                          filters=(lambda v: defaultfilters
+                                   .default_if_none(v, ""),
+                                   defaultfilters.escape,
+                                   defaultfilters.urlize)
+                          )
+    idp = tables.Column(lambda obj: getattr(obj, 'idp', None),
+                          verbose_name=_('Identity Provider'),
+                          form_field=forms.CharField(required=False))
+
+    project = tables.Column(lambda obj: str(getattr(obj, 'project', '-')),
+                            verbose_name=_('Project'),
+                            form_field=forms.CharField(required=False))
+    
+    cn = tables.Column(lambda obj: getattr(obj, 'cn', None),
+                          verbose_name=_('Common Name'),
+                          form_field=forms.CharField(required=True))
+
+    class Meta(object):
+        name = "garr_users"
+        verbose_name = _("Garr Users")
+        row_actions = (EditUserLink, ChangePasswordLink, ToggleEnabled,
+                       DeleteUsersAction)
+        table_actions = (UserFilterAction, CreateUserLink, DeleteUsersAction)
+
