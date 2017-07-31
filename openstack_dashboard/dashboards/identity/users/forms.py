@@ -35,7 +35,7 @@ from openstack_dashboard import api
 
 LOG = logging.getLogger(__name__)
 PROJECT_REQUIRED = api.keystone.VERSIONS.active < 3
-
+import pdb
 
 class PasswordMixin(forms.SelfHandlingForm):
     password = forms.RegexField(
@@ -161,6 +161,7 @@ class CreateUserForm(PasswordMixin, BaseUserForm, AddExtraColumnMixIn):
     @sensitive_variables('data')
     def handle(self, request, data):
         domain = api.keystone.get_default_domain(self.request, False)
+        pdb.set_trace()
         try:
             LOG.info('Creating user with name "%s"', data['name'])
             desc = data["description"]
