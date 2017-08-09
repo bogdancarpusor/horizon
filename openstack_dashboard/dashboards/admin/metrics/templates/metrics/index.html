@@ -3,7 +3,21 @@
 {% block title %}{% trans "Resources Usage Overview" %}{% endblock %}
 
 {% block main %}
-<div class="row">
+<div class="usage_info_wrapper">
+  <form action="?" method="get" id="date_form" class="form-inline">
+    <h3>{% trans "Interval:" %}</h3>
+    <div class="datepicker form-group">
+      {% blocktrans trimmed with start=form.start %}
+      <label>Start </label> {{ start }}{% endblocktrans %}
+    </div>
+    <div class="datepicker form-group">
+      {% blocktrans trimmed with end=form.end %}
+      <label>End </label> {{ end }}{% endblocktrans %}
+    </div>
+    <button class="btn btn-primary" type="submit">{% trans "Submit" %}</button>
+  </form>
+</div>
+<div class="row-fluid">
   <div class="col-sm-12">
     {{ tab_group.render }}
   </div>

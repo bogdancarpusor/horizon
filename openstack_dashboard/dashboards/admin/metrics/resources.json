@@ -1,28 +1,6 @@
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
-
-
-from django.utils.translation import ugettext_lazy as _
-
-from horizon import exceptions
-from horizon import messages
-from horizon import tabs
-from workflow import gnocchi_client, ResourceType, Resource, Meter
-from openstack_dashboard.dashboards.admin.metrics import \
-    tables as metrics_tables
-import pdb
-
-RESOURCES = [
-{u'created_by_project_id': 'd4ff53f5c48f4d8f88dfc07539bd8315',
+{
+"resource": [
+    {u'created_by_project_id': 'd4ff53f5c48f4d8f88dfc07539bd8315',
  u'created_by_user_id': u'43f30fdec97d4996a17d720f6e00310e',
  u'creator': u'43f30fdec97d4996a17d720f6e00310e:d4ff53f5c48f4d8f88dfc07539bd8315',
  u'display_name': u'testcb-eph',
@@ -215,72 +193,4 @@ RESOURCES = [
  u'type': u'instance',
  u'user_id': u'cc0530ce0f98408c9732ab346dd05872'}
 ]
-
-
-class StatsTab(tabs.TableTab):
-    name = _("Metrics")
-    slug = "stats"
-    template_name = "horizon/common/_detail_table.html"
-    table_classes = (metrics_tables.UsageTable,)
-
-    def get_usage_table_data(self):
-        metrics = []
-        try:
-            client = gnocchi_client(self.request)
-            resource_types = ResourceType.init_resource_types(client)
-            resource_type_select = self._tables['usage_table'].base_actions['select_resource_type']
-            resource_type_select.values = [resource_type.name for resource_type in resource_types]
-            resource_type_select.initial_value = resource_types[0].name
-            resource_type_select.values.append('another')
-            
-            resource_select = self._tables['usage_table'].base_actions['select_resource']
-            resources = Resource.init_resources(client, resource_types[0].name, self.request.user.project_id)
-            
-            if len(resources) > 0:
-                # Change to select metrics from a list of resources
-                resource_select.values = [resource.name for resource in resources]
-                resource_select.initial_value = resources[0].name
-                for resource in resources:
-                    if resource.name == resource_select.initial_value:
-                        metrics.append(resource.get_metrics_dict)
-        except KeyError:
-            pass
-
-        if len(metrics) == 0:
-            resource = RESOURCES[0]
-            for metric_name, metric_id in resource['metrics'].items():
-                metrics.append({
-                    'id': metric_id,
-                    'meter': metric_name,
-                    'resource': resource['display_name'],
-                    'project': resource['project_id'],
-                    'description': Meter._metrics_description.get(metric_name, ''),
-                    'unit': ''
-                })
-
-        pdb.set_trace()    
-        return metrics
-        # [{
-        #     'id': '0',
-        #     'resource': 'resource1',
-        #     'project': 'project1',
-        #     'meter': 'meter2',
-        #     'description': 'desc',
-        #     'time': '01-01-2017',
-        #     'value': '12',
-        #     'unit': 'km'
-        # }]
-
-class MetricsValuesTab(tabs.TableTab):
-    name = _("Metrics Values")
-    slug = "metrics"
-    template_name = "horizon/common/_detail_table.html"
-    table_classes = (metrics_tables.ValuesTable,)
-
-    def get_values_table_data(self):
-        return []
-
-class MetricsTabs(tabs.TabGroup):
-    slug = "metrics"
-    tabs = (StatsTab, MetricsValuesTab, )
-    sticky = True
+}
