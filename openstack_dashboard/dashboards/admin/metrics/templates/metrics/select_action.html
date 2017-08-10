@@ -1,0 +1,28 @@
+{% load horizon %}
+{% minifyspace %}
+<div id="{{action.name}}-select" class="themable-select dropdown  select-initialized">
+  <button type="button" class="btn btn-default dropdown-toggle" 
+          data-toggle="dropdown" aria-expanded="false">
+    <span class="dropdown-title">
+      {{ action.initial_value }}
+    </span>
+    <span class="fa fa-caret-down"></span>
+  </button>  
+    <ul class="dropdown-menu">
+        {% for value in action.values %}
+        <li data-original-index="{{ forloop.counter0 }}"
+            data-toggle="tooltip" data-placement="top"
+            data-original-title title>
+            <a data-select-value="{{ value }}">
+            {{ value }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+  <select class="form-control" name="{{ action.name }}_q_field">
+    {% for value in action.values %}
+      <option value="{{ value }}"> {{ value }} </option>
+    {% endfor %}
+  </select>
+</div>
+{% endminifyspace %}

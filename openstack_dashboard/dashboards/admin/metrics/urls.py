@@ -16,5 +16,6 @@ from openstack_dashboard.dashboards.admin.metrics import views
 
 urlpatterns = [
     url(r'^$', views.IndexView.as_view(), name='index'),
-    url(r'^create/$', views.ResourceTypeSelect, name='create'),
+    url(r'^resource_type/$', views.ResourceTypeView.as_view(), name='resource_types'),
+    url(r'^resource/$', views.ResourceView.as_view(), name='resources')
 ]
